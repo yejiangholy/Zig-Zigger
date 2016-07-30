@@ -20,9 +20,42 @@ class GameViewController: UIViewController , SCNSceneRendererDelegate {
     var tempBox = SCNNode()
     var boxNumber = Int()
     var prevBoxNumber = Int()
+    var firstOne = Bool()
     
     override func viewDidLoad() {
         self.createScene()
+        
+    }
+    
+    
+    func fadeIn(node : SCNNode)
+    {
+        node.opacity = 0
+        node.runAction(SCNAction.fadeInWithDuration(0.5))
+    }
+    
+    func fadeOut(node: SCNNode)
+    {
+        let move = SCNAction.moveTo(SCNVector3Make(node.position.x, node.position.y - 2 , node.position.z), duration: 0.5)
+        node.runAction(move)
+        node.runAction(SCNAction.fadeOutWithDuration(0.5))
+    }
+    
+    func createCoin(box : SCNNode) {
+        
+        let randomNumber = arc4random() % 6
+        if randomNumber == 3 {
+            let spin = SCNAction.rotateByAngle(CGFloat(M_PI * 2), aroundAxis: SCNVector3Make(0, 0.5, 0), duration: 0.5)
+            let coinScene = SCNScene(named: "Coin.dae")
+            let coin = coinScene?.rootNode.childNodeWithName("Coin", recursively: true)
+            coin?.position = SCNVector3Make(box.position.x, box.position.y + 1, box.position.z)
+            coin?.scale = SCNVector3Make(0.2, 0.2, 0.2)
+            scene.rootNode.addChildNode(coin!)
+            coin?.runAction(SCNAction.repeatActionForever(spin))
+            fadeIn(coin!)
+            
+        }
+        
         
     }
     
@@ -89,15 +122,29 @@ class GameViewController: UIViewController , SCNSceneRendererDelegate {
             
         case 0:
             tempBox.position = SCNVector3Make((prevBox?.position.x)! - firstBox.scale.x, (prevBox?.position.y)! , (prevBox?.position.z)!)
+            
+            if firstOne == true {
+                firstOne = false
+                goingLeft = false
+            }
+            
             break
         case 1:
             tempBox.position = SCNVector3Make((prevBox?.position.x)!, (prevBox?.position.y)! , (prevBox?.position.z)! - firstBox.scale.z)
+            
+            if firstOne == true {
+                firstOne = false
+                goingLeft = true
+            }
+            
             break
         default:
             
             break
         }
         self.scene.rootNode.addChildNode(tempBox)
+        createCoin(tempBox)
+        fadeIn(tempBox)
         
     }
     
@@ -120,6 +167,7 @@ class GameViewController: UIViewController , SCNSceneRendererDelegate {
     {
         boxNumber = 0
         prevBoxNumber = 0
+        firstOne = true
         
         self.view.backgroundColor = UIColor.whiteColor()
         let sceneView = self.view as! SCNView
